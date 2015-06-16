@@ -2,16 +2,22 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.raf0c.basicmapsdisplay" >
 
-    <uses-permission android:name="android.permission.INTERNET" />
+
+    <uses-feature
+        android:glEsVersion="0x00020000"
+        android:required="true" />
+
+
+    <uses-permission android:name="com.maps.screens.permission.MAPS_RECEIVE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_INTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
-    <!--
- The ACCESS_COARSE/FINE_LOCATION permissions are not required to use
-         Google Maps Android API v2, but are recommended.
-    -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:allowBackup="true"
@@ -30,10 +36,11 @@
             android:label="@string/title_activity_maps" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <uses-library android:name="com.google.android.maps" />
     </application>
 
 </manifest>
