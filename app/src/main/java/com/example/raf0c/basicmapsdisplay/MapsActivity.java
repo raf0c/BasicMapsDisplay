@@ -21,12 +21,14 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.Filterable;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.raf0c.basicmapsdisplay.beans.RowItem;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -65,6 +67,7 @@ public class MapsActivity extends FragmentActivity implements View.OnClickListen
 
     private GoogleMap mMap;
     Marker mCurrent;
+    Marker mMarkerTemp;
     LatLng mPosition;
     LatLng mPositiontemp;
 
@@ -79,6 +82,8 @@ public class MapsActivity extends FragmentActivity implements View.OnClickListen
     private static final String TAG = "Consola : ";
 
     public GooglePlacesAutocompleteAdapter obj;
+
+    public boolean markerFlag;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -114,11 +119,14 @@ public class MapsActivity extends FragmentActivity implements View.OnClickListen
     @SuppressWarnings("deprecation")
     private void initElements(){
 
+
         probar              = (ProgressBar) findViewById(R.id.proBar);
         textLocation        = (TextView) findViewById(R.id.eTlocation);
         btnFindMe           = (Button) findViewById(R.id.btnFindme);
         locationMangaer     = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         AutoCompleteTextView autoCompView = (AutoCompleteTextView) findViewById(R.id.autoCompleteTextView);
+
+        markerFlag = true;
 
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);//set activity on portrait only
         btnFindMe.setOnClickListener(this);
@@ -139,19 +147,26 @@ public class MapsActivity extends FragmentActivity implements View.OnClickListen
 
         Geocoder gc = new Geocoder(getBaseContext());
 
+
         try {
             if(gc.isPresent()){
                 List<Address> list = gc.getFromLocationName(str, 1);
 
-                Address address = list.get(0);
+                if(list.size() > 0){
+                    Address address = list.get(0);
 
-                double lat = address.getLatitude();
-                double lng = address.getLongitude();
+                    double lat = address.getLatitude();
+                    double lng = address.getLongitude();
 
-                mPositiontemp = new LatLng(address.getLatitude(), address.getLongitude());
+                    mPositiontemp = new LatLng(address.getLatitude(), address.getLongitude());
 
-                mCenterOnLocation = true;
-                mCurrent = mMap.addMarker(new MarkerOptions().position(mPositiontemp).title(list.get(0).getLocality()));
+                    mCenterOnLocation = true;
+                    mMarkerTemp = mMap.addMarker(new MarkerOptions().position(mPositiontemp).title(list.get(0).getLocality()));
+                }
+                else{
+                    Toast.makeText(this, "Calm!, I'm getting the information",Toast.LENGTH_SHORT).show();
+                }
+
 
                 //Polyline line = mMap.addPolyline(new PolylineOptions().add(new LatLng(mPosition.latitude, mPosition.longitude), new LatLng(mPositiontemp.latitude, mPositiontemp.longitude)).width(2)
                     //    .color(Color.BLUE).geodesic(true));
@@ -277,7 +292,7 @@ public class MapsActivity extends FragmentActivity implements View.OnClickListen
             // Extract the Place descriptions from the results
             resultList = new ArrayList(predsJsonArray.length());
             for (int i = 0; i < predsJsonArray.length(); i++) {
-                System.out.println(predsJsonArray.getJSONObject(i).getString("description"));
+                System.out.println(" Soy direccion : " + predsJsonArray.getJSONObject(i).getString("description"));
                 System.out.println("============================================================");
                 resultList.add(predsJsonArray.getJSONObject(i).getString("description"));
             }
@@ -339,7 +354,6 @@ public class MapsActivity extends FragmentActivity implements View.OnClickListen
             return filter;
         }
     }
-
     /*
     * Check if Gps is on or not
     * */
@@ -382,6 +396,7 @@ public class MapsActivity extends FragmentActivity implements View.OnClickListen
             locationMangaer.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10, locationListener);
 
             mCenterOnLocation = true;
+
 
 
         } else {
@@ -446,7 +461,13 @@ public class MapsActivity extends FragmentActivity implements View.OnClickListen
 
             String s = longitude + "\n" + latitude;
             textLocation.setText(s);
-            mCurrent = mMap.addMarker(new MarkerOptions().position(mPosition).title("You are here !"));
+
+            if(markerFlag){
+                mCurrent = mMap.addMarker(new MarkerOptions().position(mPosition).title("You are here !"));
+                markerFlag = false;
+            }else{
+                Toast.makeText(getBaseContext(), "You are still here !!!!", Toast.LENGTH_SHORT).show();
+            }
 
 
             mCenterOnLocation = true;
