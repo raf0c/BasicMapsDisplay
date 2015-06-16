@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.graphics.Color;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.provider.Settings;
@@ -32,6 +33,8 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -63,6 +66,8 @@ public class MapsActivity extends FragmentActivity implements View.OnClickListen
     private GoogleMap mMap;
     Marker mCurrent;
     LatLng mPosition;
+    LatLng mPositiontemp;
+
     boolean mCenterOnLocation;
 
     private Button btnFindMe = null;
@@ -72,6 +77,8 @@ public class MapsActivity extends FragmentActivity implements View.OnClickListen
     private LocationListener locationListener = null;
     private Boolean gpsPrendido = false;
     private static final String TAG = "Consola : ";
+
+    public GooglePlacesAutocompleteAdapter obj;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -119,6 +126,7 @@ public class MapsActivity extends FragmentActivity implements View.OnClickListen
         autoCompView.setAdapter(new GooglePlacesAutocompleteAdapter(this, R.layout.list_item));
         autoCompView.setOnItemClickListener(this);
 
+        obj = new GooglePlacesAutocompleteAdapter(this,R.layout.list_item);
         /*
         * Initialize Progress Bar not Visible, when the user interacts, make it visible
         * */
@@ -128,6 +136,103 @@ public class MapsActivity extends FragmentActivity implements View.OnClickListen
     public void onItemClick(AdapterView adapterView, View view, int position, long id) {
         String str = (String) adapterView.getItemAtPosition(position);
         Toast.makeText(this, str, Toast.LENGTH_SHORT).show();
+
+        Geocoder gc = new Geocoder(getBaseContext());
+
+        try {
+            if(gc.isPresent()){
+                List<Address> list = gc.getFromLocationName(str, 1);
+
+                Address address = list.get(0);
+
+                double lat = address.getLatitude();
+                double lng = address.getLongitude();
+
+                mPositiontemp = new LatLng(address.getLatitude(), address.getLongitude());
+
+                mCenterOnLocation = true;
+                mCurrent = mMap.addMarker(new MarkerOptions().position(mPositiontemp).title(list.get(0).getLocality()));
+
+                //Polyline line = mMap.addPolyline(new PolylineOptions().add(new LatLng(mPosition.latitude, mPosition.longitude), new LatLng(mPositiontemp.latitude, mPositiontemp.longitude)).width(2)
+                    //    .color(Color.BLUE).geodesic(true));
+
+                centerOnLocation(mPositiontemp, new GoogleMap.CancelableCallback() {
+                    @Override
+                    public void onFinish() {
+
+                    }
+
+                    @Override
+                    public void onCancel() {
+                    }
+                });
+
+
+            }
+
+        } catch (IOException e) {
+
+            e.printStackTrace();
+
+        }
+
+    }
+
+    public void drawPath(String  result) {
+
+        try {
+            //Tranform the string into a json object
+            final JSONObject json = new JSONObject(result);
+            JSONArray routeArray = json.getJSONArray("routes");
+            JSONObject routes = routeArray.getJSONObject(0);
+            JSONObject overviewPolylines = routes.getJSONObject("overview_polyline");
+            String encodedString = overviewPolylines.getString("points");
+            List<LatLng> list = decodePoly(encodedString);
+
+            for(int z = 0; z<list.size()-1;z++){
+                LatLng src= list.get(z);
+                LatLng dest= list.get(z+1);
+                Polyline line = mMap.addPolyline(new PolylineOptions().add(new LatLng(mPosition.latitude, mPosition.longitude), new LatLng(mPositiontemp.latitude, mPositiontemp.longitude)).width(2)
+                        .color(Color.BLUE).geodesic(true));
+            }
+
+        }
+        catch (JSONException e) {
+
+        }
+    }
+    private List<LatLng> decodePoly(String encoded) {
+
+        List<LatLng> poly = new ArrayList<LatLng>();
+        int index = 0, len = encoded.length();
+        int lat = 0, lng = 0;
+
+        while (index < len) {
+            int b, shift = 0, result = 0;
+            do {
+                b = encoded.charAt(index++) - 63;
+                result |= (b & 0x1f) << shift;
+                shift += 5;
+            } while (b >= 0x20);
+            int dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+            lat += dlat;
+
+            shift = 0;
+            result = 0;
+            do {
+                b = encoded.charAt(index++) - 63;
+                result |= (b & 0x1f) << shift;
+                shift += 5;
+            } while (b >= 0x20);
+            int dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+            lng += dlng;
+
+            LatLng p = new LatLng( (((double) lat / 1E5)),
+                    (((double) lng / 1E5) ));
+            poly.add(p);
+        }
+
+        return poly;
     }
 
     public static ArrayList autocomplete(String input) {
@@ -183,12 +288,14 @@ public class MapsActivity extends FragmentActivity implements View.OnClickListen
         return resultList;
     }
 
-    class GooglePlacesAutocompleteAdapter extends ArrayAdapter implements Filterable {
+    public class GooglePlacesAutocompleteAdapter extends ArrayAdapter implements Filterable {
         private ArrayList resultList;
 
         public GooglePlacesAutocompleteAdapter(Context context, int textViewResourceId) {
             super(context, textViewResourceId);
         }
+
+
 
         @Override
         public int getCount() {
@@ -205,7 +312,9 @@ public class MapsActivity extends FragmentActivity implements View.OnClickListen
             Filter filter = new Filter() {
                 @Override
                 protected FilterResults performFiltering(CharSequence constraint) {
+
                     FilterResults filterResults = new FilterResults();
+
                     if (constraint != null) {
                         // Retrieve the autocomplete results.
                         resultList = autocomplete(constraint.toString());
@@ -220,6 +329,7 @@ public class MapsActivity extends FragmentActivity implements View.OnClickListen
                 @Override
                 protected void publishResults(CharSequence constraint, FilterResults results) {
                     if (results != null && results.count > 0) {
+
                         notifyDataSetChanged();
                     } else {
                         notifyDataSetInvalidated();
@@ -334,29 +444,6 @@ public class MapsActivity extends FragmentActivity implements View.OnClickListen
             Log.v(TAG, latitude);
             mPosition = new LatLng(loc.getLatitude(), loc.getLongitude());
 
-
-            /*
-            * We create a Geocoder, the geocoder will be able to translates the coordinates
-            *
-            String city = null;
-            Geocoder gcd = new Geocoder(getBaseContext(), Locale.getDefault());
-            List<Address> addresses;
-
-            try {
-                addresses = gcd.getFromLocation(loc.getLatitude(), loc.getLongitude(), 1);
-
-                if (addresses.size() > 0) {
-                    System.out.println(addresses.get(0).getLocality());
-                }
-
-                city = addresses.get(0).getLocality();
-
-            } catch (IOException e) {
-
-                e.printStackTrace();
-
-            }
-            */
             String s = longitude + "\n" + latitude;
             textLocation.setText(s);
             mCurrent = mMap.addMarker(new MarkerOptions().position(mPosition).title("You are here !"));
@@ -378,13 +465,7 @@ public class MapsActivity extends FragmentActivity implements View.OnClickListen
         }
 
 
-        public void centerOnLocation(LatLng position, GoogleMap.CancelableCallback callback) {
 
-            if (mCenterOnLocation && mMap != null) {
-                mCenterOnLocation = false;
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(position, 12), 1500, callback);
-            }
-        }
 
 
         @Override
@@ -404,6 +485,13 @@ public class MapsActivity extends FragmentActivity implements View.OnClickListen
         }
     }
 
+    public void centerOnLocation(LatLng position, GoogleMap.CancelableCallback callback) {
+
+        if (mCenterOnLocation && mMap != null) {
+            mCenterOnLocation = false;
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(position, 12), 1500, callback);
+        }
+    }
 
     public GoogleMap getMap() {
         if (mMap == null)
