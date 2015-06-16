@@ -17,9 +17,13 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
-import android.widget.EditText;
+import android.widget.Filterable;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -29,11 +33,32 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import android.widget.Filter;
+import android.widget.Filterable;
 
-public class MapsActivity extends FragmentActivity implements View.OnClickListener {
+public class MapsActivity extends FragmentActivity implements View.OnClickListener, AdapterView.OnItemClickListener {
+
+
+
+    private static final String LOG_TAG = "Google P : ";
+    private static final String PLACES_API_BASE = "https://maps.googleapis.com/maps/api/place";
+    private static final String TYPE_AUTOCOMPLETE = "/autocomplete";
+    private static final String OUT_JSON = "/json";
+
+    private static final String API_KEY = "AIzaSyDLOFWhrKy-tSpw6KpfAkM25spt98JQ2jw";
 
     private GoogleMap mMap;
     Marker mCurrent;
@@ -41,7 +66,7 @@ public class MapsActivity extends FragmentActivity implements View.OnClickListen
     boolean mCenterOnLocation;
 
     private Button btnFindMe = null;
-    private EditText editLocation = null;
+    private TextView textLocation = null;
     private ProgressBar probar =null;
     private LocationManager locationMangaer = null;
     private LocationListener locationListener = null;
@@ -83,17 +108,127 @@ public class MapsActivity extends FragmentActivity implements View.OnClickListen
     private void initElements(){
 
         probar              = (ProgressBar) findViewById(R.id.proBar);
-        editLocation        = (EditText) findViewById(R.id.eTlocation);
+        textLocation        = (TextView) findViewById(R.id.eTlocation);
         btnFindMe           = (Button) findViewById(R.id.btnFindme);
         locationMangaer     = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        AutoCompleteTextView autoCompView = (AutoCompleteTextView) findViewById(R.id.autoCompleteTextView);
 
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);//set activity on portrait only
         btnFindMe.setOnClickListener(this);
+
+        autoCompView.setAdapter(new GooglePlacesAutocompleteAdapter(this, R.layout.list_item));
+        autoCompView.setOnItemClickListener(this);
+
         /*
         * Initialize Progress Bar not Visible, when the user interacts, make it visible
         * */
         probar.setVisibility(View.INVISIBLE);
         }
+
+    public void onItemClick(AdapterView adapterView, View view, int position, long id) {
+        String str = (String) adapterView.getItemAtPosition(position);
+        Toast.makeText(this, str, Toast.LENGTH_SHORT).show();
+    }
+
+    public static ArrayList autocomplete(String input) {
+        ArrayList resultList = null;
+
+        HttpURLConnection conn = null;
+        StringBuilder jsonResults = new StringBuilder();
+        try {
+            StringBuilder sb = new StringBuilder(PLACES_API_BASE + TYPE_AUTOCOMPLETE + OUT_JSON);
+            sb.append("?key=" + API_KEY);
+            sb.append("&components=country:us");
+            sb.append("&input=" + URLEncoder.encode(input, "utf8"));
+
+
+            URL url = new URL(sb.toString());
+            conn = (HttpURLConnection) url.openConnection();
+            InputStreamReader in = new InputStreamReader(conn.getInputStream());
+
+            // Load the results into a StringBuilder
+            int read;
+            char[] buff = new char[1024];
+            while ((read = in.read(buff)) != -1) {
+                jsonResults.append(buff, 0, read);
+            }
+        } catch (MalformedURLException e) {
+            Log.e(LOG_TAG, "Error processing Places API URL", e);
+            return resultList;
+        } catch (IOException e) {
+            Log.e(LOG_TAG, "Error connecting to Places API", e);
+            return resultList;
+        } finally {
+            if (conn != null) {
+                conn.disconnect();
+            }
+        }
+
+        try {
+            // Create a JSON object hierarchy from the results
+            JSONObject jsonObj = new JSONObject(jsonResults.toString());
+            JSONArray predsJsonArray = jsonObj.getJSONArray("predictions");
+
+            // Extract the Place descriptions from the results
+            resultList = new ArrayList(predsJsonArray.length());
+            for (int i = 0; i < predsJsonArray.length(); i++) {
+                System.out.println(predsJsonArray.getJSONObject(i).getString("description"));
+                System.out.println("============================================================");
+                resultList.add(predsJsonArray.getJSONObject(i).getString("description"));
+            }
+        } catch (JSONException e) {
+            Log.e(LOG_TAG, "Cannot process JSON results", e);
+        }
+
+        return resultList;
+    }
+
+    class GooglePlacesAutocompleteAdapter extends ArrayAdapter implements Filterable {
+        private ArrayList resultList;
+
+        public GooglePlacesAutocompleteAdapter(Context context, int textViewResourceId) {
+            super(context, textViewResourceId);
+        }
+
+        @Override
+        public int getCount() {
+            return resultList.size();
+        }
+
+        @Override
+        public String getItem(int index) {
+            return resultList.get(index).toString();
+        }
+
+        @Override
+        public Filter getFilter() {
+            Filter filter = new Filter() {
+                @Override
+                protected FilterResults performFiltering(CharSequence constraint) {
+                    FilterResults filterResults = new FilterResults();
+                    if (constraint != null) {
+                        // Retrieve the autocomplete results.
+                        resultList = autocomplete(constraint.toString());
+
+                        // Assign the data to the FilterResults
+                        filterResults.values = resultList;
+                        filterResults.count = resultList.size();
+                    }
+                    return filterResults;
+                }
+
+                @Override
+                protected void publishResults(CharSequence constraint, FilterResults results) {
+                    if (results != null && results.count > 0) {
+                        notifyDataSetChanged();
+                    } else {
+                        notifyDataSetInvalidated();
+                    }
+                }
+            };
+            return filter;
+        }
+    }
 
     /*
     * Check if Gps is on or not
@@ -188,7 +323,7 @@ public class MapsActivity extends FragmentActivity implements View.OnClickListen
         @Override
         public void onLocationChanged(Location loc) {
 
-            editLocation.setText("");
+            textLocation.setText("");
             probar.setVisibility(View.INVISIBLE);
 
 
@@ -202,7 +337,7 @@ public class MapsActivity extends FragmentActivity implements View.OnClickListen
 
             /*
             * We create a Geocoder, the geocoder will be able to translates the coordinates
-            * */
+            *
             String city = null;
             Geocoder gcd = new Geocoder(getBaseContext(), Locale.getDefault());
             List<Address> addresses;
@@ -221,9 +356,9 @@ public class MapsActivity extends FragmentActivity implements View.OnClickListen
                 e.printStackTrace();
 
             }
-
+            */
             String s = longitude + "\n" + latitude;
-            editLocation.setText(s);
+            textLocation.setText(s);
             mCurrent = mMap.addMarker(new MarkerOptions().position(mPosition).title("You are here !"));
 
 
