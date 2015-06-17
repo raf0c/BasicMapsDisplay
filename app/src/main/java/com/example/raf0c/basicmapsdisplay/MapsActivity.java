@@ -65,25 +65,31 @@ public class MapsActivity extends FragmentActivity implements View.OnClickListen
 
     private static final String API_KEY = "AIzaSyDLOFWhrKy-tSpw6KpfAkM25spt98JQ2jw";
 
-    private GoogleMap mMap;
-    Marker mCurrent;
-    Marker mMarkerTemp;
-    LatLng mPosition;
-    LatLng mPositiontemp;
+    public GoogleMap mMap;
+    public Marker mCurrent;
+    public Marker mMarkerTemp;
+    public LatLng mPosition;
+    public LatLng mPositiontemp;
 
-    boolean mCenterOnLocation;
+    public boolean mCenterOnLocation;
 
-    private Button btnFindMe = null;
-    private TextView textLocation = null;
-    private ProgressBar probar =null;
-    private LocationManager locationMangaer = null;
-    private LocationListener locationListener = null;
-    private Boolean gpsPrendido = false;
-    private static final String TAG = "Consola : ";
+    public Button btnFindMe = null;
+    public TextView textLocation = null;
+    public TextView distanceBetween = null;
+
+    public ProgressBar probar =null;
+    public LocationManager locationMangaer = null;
+    public LocationListener locationListener = null;
+    public Boolean gpsPrendido = false;
+    public static final String TAG = "Consola : ";
 
     public GooglePlacesAutocompleteAdapter obj;
 
     public boolean markerFlag;
+
+    public float distanceMeters;
+
+    float distanceInMeters;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -122,6 +128,7 @@ public class MapsActivity extends FragmentActivity implements View.OnClickListen
 
         probar              = (ProgressBar) findViewById(R.id.proBar);
         textLocation        = (TextView) findViewById(R.id.eTlocation);
+        distanceBetween     = (TextView) findViewById(R.id.edistance);
         btnFindMe           = (Button) findViewById(R.id.btnFindme);
         locationMangaer     = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         AutoCompleteTextView autoCompView = (AutoCompleteTextView) findViewById(R.id.autoCompleteTextView);
@@ -135,6 +142,8 @@ public class MapsActivity extends FragmentActivity implements View.OnClickListen
         autoCompView.setOnItemClickListener(this);
 
         obj = new GooglePlacesAutocompleteAdapter(this,R.layout.list_item);
+
+
         /*
         * Initialize Progress Bar not Visible, when the user interacts, make it visible
         * */
@@ -152,6 +161,11 @@ public class MapsActivity extends FragmentActivity implements View.OnClickListen
             if(gc.isPresent()){
                 List<Address> list = gc.getFromLocationName(str, 1);
 
+                Location loc1 = new Location("");
+                loc1.setLatitude(mPosition.latitude);
+                loc1.setLongitude(mPosition.longitude);
+                Location loc2 = new Location("");
+
                 if(list.size() > 0){
                     Address address = list.get(0);
 
@@ -160,16 +174,22 @@ public class MapsActivity extends FragmentActivity implements View.OnClickListen
 
                     mPositiontemp = new LatLng(address.getLatitude(), address.getLongitude());
 
+                    loc2.setLatitude(mPositiontemp.latitude);
+                    loc2.setLongitude(mPositiontemp.longitude);
+
                     mCenterOnLocation = true;
                     mMarkerTemp = mMap.addMarker(new MarkerOptions().position(mPositiontemp).title(list.get(0).getLocality()));
                 }
                 else{
-                    Toast.makeText(this, "Calm!, I'm getting the information",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "I couldn't find that address, try another one pls",Toast.LENGTH_SHORT).show();
                 }
 
+                distanceMeters = loc1.distanceTo(loc2);
 
+                Toast.makeText(this, "Your distance is : " + distanceMeters ,Toast.LENGTH_SHORT).show();
+                distanceBetween.setText(String.valueOf(distanceMeters) + "meters");
                 //Polyline line = mMap.addPolyline(new PolylineOptions().add(new LatLng(mPosition.latitude, mPosition.longitude), new LatLng(mPositiontemp.latitude, mPositiontemp.longitude)).width(2)
-                    //    .color(Color.BLUE).geodesic(true));
+                //    .color(Color.BLUE).geodesic(true));
 
                 centerOnLocation(mPositiontemp, new GoogleMap.CancelableCallback() {
                     @Override

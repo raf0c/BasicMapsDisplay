@@ -31,6 +31,12 @@
                 android:id="@+id/eTlocation"
                 android:textSize="14sp"/>
 
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="80dp"
+                android:layout_weight="0.08"
+                android:id="@+id/edistance"
+                android:textSize="14sp"/>
 
         </LinearLayout>
 
