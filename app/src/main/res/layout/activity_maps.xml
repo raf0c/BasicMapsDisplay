@@ -1,57 +1,14 @@
+<android.support.v4.widget.DrawerLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/drawer_layout"
+    android:layout_width="match_parent"
+    android:layout_height="fill_parent">
+
 <LinearLayout xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:orientation="vertical"
     xmlns:android="http://schemas.android.com/apk/res/android">
-
-
-    <LinearLayout
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/find_me"
-                android:id="@+id/btnFindme"
-                android:layout_gravity="end"
-                >
-
-            </Button>
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="80dp"
-                android:layout_weight="0.08"
-                android:id="@+id/eTlocation"
-                android:textSize="14sp"/>
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="80dp"
-                android:layout_weight="0.08"
-                android:id="@+id/edistance"
-                android:textSize="14sp"/>
-
-        </LinearLayout>
-
-        <AutoCompleteTextView
-            android:id="@+id/autoCompleteTextView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:text="" >
-            <requestFocus />
-        </AutoCompleteTextView>
-
-
-    </LinearLayout>
-
 
     <LinearLayout
         android:layout_height="0dp"
@@ -60,20 +17,24 @@
         android:gravity="center"
         android:orientation="vertical">
 
-        <ProgressBar
-            android:layout_width="wrap_content"
-            android:id="@+id/proBar"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            >
-        </ProgressBar>
+        <ListView
+            android:id="@+id/list_options"
+            android:layout_width="fill_parent"
+            android:layout_height="150dp"
+            android:layout_gravity="right"
+            android:choiceMode="singleChoice"
+            android:divider="#000"
+            android:dividerHeight="1dp"
+            android:background="#000"
+            android:visibility="invisible"
+            />
         <fragment
             xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:tools="http://schemas.android.com/tools"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:id="@+id/map"
-            tools:context=".MapsActivity"
+            tools:context=".GooglePlacesActivity"
             android:name="com.google.android.gms.maps.SupportMapFragment" />
 
 
@@ -81,3 +42,15 @@
 
 
 </LinearLayout>
+
+        <ListView
+            android:id="@+id/list_slidermenu"
+            android:layout_width="180dp"
+            android:layout_height="fill_parent"
+            android:layout_gravity="left"
+            android:choiceMode="singleChoice"
+            android:divider="#000"
+            android:dividerHeight="1dp"
+            android:background="#ff000000"
+            />
+</android.support.v4.widget.DrawerLayout>
