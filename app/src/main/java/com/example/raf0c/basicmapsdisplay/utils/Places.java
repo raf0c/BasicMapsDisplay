@@ -8,6 +8,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+/**
+ * Created by raf0c on 22/06/15.
+ */
+
 public class Places {
 
     public List<HashMap<String, String>> parse(JSONObject jsonObject) {

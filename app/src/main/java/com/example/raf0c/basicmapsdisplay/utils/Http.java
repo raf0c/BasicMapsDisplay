@@ -9,6 +9,10 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+/**
+ * Created by raf0c on 22/06/15.
+ */
+
 public class Http {
 
     public String read(String httpUrl) throws IOException {

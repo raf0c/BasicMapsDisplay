@@ -6,8 +6,25 @@
     <string name="find_me">Find me !</string>
     <string name="label_btn_find">Find</string>
 
+
+    <string name="title_section1">Cafe</string>
+    <string name="title_section2">Restaurant</string>
+    <string name="title_section3">Bar</string>
+
+    <string name="title_section4">uno</string>
+    <string name="title_section5">dos</string>
+    <string name="title_section6">tres</string>
+
+
+    <string name="navigation_drawer_open">Open</string>
+    <string name="navigation_drawer_close">Close</string>
+
+    <string name="action_example">Options</string>
+
+    <string name="action_settings">Settings</string>
+
     <string-array name="titles">
-        <item>Caffeterias</item>
+        <item>Cafe</item>
         <item>Restaurant</item>
         <item>Bar</item>
     </string-array>
