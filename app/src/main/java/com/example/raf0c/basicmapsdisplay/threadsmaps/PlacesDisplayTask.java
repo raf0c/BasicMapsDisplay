@@ -82,20 +82,7 @@ public class PlacesDisplayTask extends AsyncTask<Object, Integer, List<HashMap<S
             arrayDestino.add(i,new Destination(placeName,lat,lng,i));
         }
 
-       /* for (int i = 0; i < list.size(); i++) {
-            MarkerOptions markerOptions = new MarkerOptions();
-            HashMap<String, String> googlePlace = list.get(i);
-            double lat = Double.parseDouble(googlePlace.get("lat"));
-            double lng = Double.parseDouble(googlePlace.get("lng"));
-            placeName = googlePlace.get("place_name");
-            itemstring.add(i,placeName);
-            String vicinity = googlePlace.get("vicinity");
-            LatLng latLng = new LatLng(lat, lng);
-            markerOptions.position(latLng);
-            markerOptions.title(placeName + " : " + vicinity);
-            googleMap.addMarker(markerOptions);
-        }*/
-        ArrayAdapter<String> adapter=new ArrayAdapter<String>(context, android.R.layout.simple_list_item_1, android.R.id.text1,itemstring);
+        ArrayAdapter<String> adapter=new ArrayAdapter<>(context, android.R.layout.simple_list_item_1, android.R.id.text1,itemstring);
         myList.setAdapter(adapter);
 
         myList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -118,13 +105,12 @@ public class PlacesDisplayTask extends AsyncTask<Object, Integer, List<HashMap<S
 
                 for (int k = 0; k < arrayDestino.size(); k++) {
                     if (arrayDestino.get(k).getPosition() == position) {
-                        System.out.println("Soy la position " + position + " me llamo : " + arrayDestino.get(k).getTitle());
                         LatLng latLng = new LatLng(arrayDestino.get(k).getLatitud(), arrayDestino.get(k).getLongitud());
                         markerOptions.position(latLng);
-                        markerOptions.title(placeName);
+                        markerOptions.title(arrayDestino.get(k).getTitle());
                         googleMap.addMarker(markerOptions);
                     } else {
-                        System.out.println("No encontre ni madres");
+                        Log.i("PLACE_SELECTED","I'm not the selected one");
                     }
                 }
             }
