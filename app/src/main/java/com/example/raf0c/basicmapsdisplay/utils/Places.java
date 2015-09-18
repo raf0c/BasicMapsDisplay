@@ -38,9 +38,6 @@ public class Places {
                 e.printStackTrace();
             }
         }
-        for(int i = 0; i<placesList.size();i++){
-            System.out.println("Resultado es : " + placesList.get(i).toString());
-        }
         return placesList;
     }
 

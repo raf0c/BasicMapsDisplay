@@ -109,8 +109,6 @@ public class PlacesDisplayTask extends AsyncTask<Object, Integer, List<HashMap<S
                         markerOptions.position(latLng);
                         markerOptions.title(arrayDestino.get(k).getTitle());
                         googleMap.addMarker(markerOptions);
-                    } else {
-                        Log.i("PLACE_SELECTED","I'm not the selected one");
                     }
                 }
             }
