@@ -10,14 +10,12 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.example.raf0c.basicmapsdisplay.R;
-import com.example.raf0c.basicmapsdisplay.beans.Destiny;
+import com.example.raf0c.basicmapsdisplay.beans.Destination;
 import com.example.raf0c.basicmapsdisplay.utils.Places;
 import com.example.raf0c.basicmapsdisplay.adapter.PlaceFinalAdapter;
 import com.example.raf0c.basicmapsdisplay.beans.RowPlaceItem;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.json.JSONObject;
@@ -70,9 +68,9 @@ public class PlacesDisplayTask extends AsyncTask<Object, Integer, List<HashMap<S
     protected void onPostExecute(List<HashMap<String, String>> list) {
         googleMap.clear();
          ArrayList<String> itemstring = new ArrayList<>();
-        final ArrayList<Destiny> arrayDestino = new ArrayList<>();
+        final ArrayList<Destination> arrayDestino = new ArrayList<>();
 
-        Destiny destino = new Destiny(null,null,null,0);
+        Destination destino = new Destination(null,null,null,0);
 
 
         for (int i = 0; i < list.size(); i++) {
@@ -81,7 +79,7 @@ public class PlacesDisplayTask extends AsyncTask<Object, Integer, List<HashMap<S
             double lng = Double.parseDouble(googlePlace.get("lng"));
             placeName = googlePlace.get("place_name");
             itemstring.add(i,placeName);
-            arrayDestino.add(i,new Destiny(placeName,lat,lng,i));
+            arrayDestino.add(i,new Destination(placeName,lat,lng,i));
         }
 
        /* for (int i = 0; i < list.size(); i++) {

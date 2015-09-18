@@ -3,7 +3,7 @@ package com.example.raf0c.basicmapsdisplay.beans;
 /**
  * Created by raf0c on 22/06/15.
  */
-public class Destiny {
+public class Destination {
 
     public String title;
     public Double latitud;
@@ -11,7 +11,7 @@ public class Destiny {
     public int position;
 
 
-    public Destiny(String title, Double latitud, Double longitud, int position) {
+    public Destination(String title, Double latitud, Double longitud, int position) {
         this.title = title;
         this.latitud = latitud;
         this.longitud = longitud;
